@@ -4,8 +4,8 @@ import asyncHandler from '../middlewares/asyncHandler.js';
 import createToken from '../utils/createToken.js';
 
 const createUser = asyncHandler(async (req, res) => {
-  const { username, id, password } = req.body;
-  if (!username || !id || !password) {
+  const { username, id, password, isTeacher, isAdmin } = req.body;
+  if (!username || !id || !password || !isTeacher) {
     throw new Error('Please fill all inputs');
   }
 
@@ -16,12 +16,16 @@ const createUser = asyncHandler(async (req, res) => {
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
-  const newUser = new User({ username, id, password: hashedPassword });
+  const newUser = new User({
+    username,
+    id,
+    password: hashedPassword,
+    isAdmin,
+    isTeacher,
+  });
 
   try {
     await newUser.save();
-    // createToken(res, newUser._id);
-
     return res.status(201).json({
       _id: newUser._id,
       username: newUser.username,
@@ -112,8 +116,52 @@ const editStudent = asyncHandler(async (req, res) => {
 });
 const deleteStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log(id);
+  // console.log(id);
   const user = await User.findOne({ _id: id });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  await user.deleteOne();
+
+  res.status(200).json({
+    message: 'User deleted successfully',
+  });
+});
+
+const getAllTeacher = asyncHandler(async (req, res) => {
+  const teachers = await User.find({ isTeacher: true, isAdmin: false }).select(
+    '-password'
+  );
+  res.status(200).json(teachers);
+});
+const editTeacher = asyncHandler(async (req, res) => {
+  const { UId } = req.params;
+  console.log(UId);
+  const { username, id, password } = req.body; //Tid refers to tacher's id
+  console.log(username + '' + id);
+
+  if (!username || !id) {
+    throw new Error('Please provide proper details');
+  }
+  const user = await User.findOne({ _id: UId });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  user.username = username;
+  user.id = id;
+  if (password) {
+    user.password = await bcrypt.hash(password, 10);
+  }
+  await user.save();
+
+  res.status(200).json({
+    message: 'User updated successfully',
+  });
+});
+
+const deleteTeacher = asyncHandler(async (req, res) => {
+  const { UId } = req.params;
+  const user = await User.findOne({ _id: UId });
   if (!user) {
     throw new Error('User not found');
   }
@@ -132,4 +180,7 @@ export {
   getAllStudent,
   editStudent,
   deleteStudent,
+  getAllTeacher,
+  editTeacher,
+  deleteTeacher,
 };

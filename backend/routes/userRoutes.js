@@ -7,6 +7,9 @@ import {
   getAllStudent,
   editStudent,
   deleteStudent,
+  getAllTeacher,
+  editTeacher,
+  deleteTeacher,
 } from '../controllers/userController.js';
 import {
   authorizeAdmin,
@@ -21,6 +24,11 @@ router
   .post(authenticate, authorizeAdmin, createUser)
   .get(authenticate, authorizeAdmin, getAllUser);
 router.route('/students').get(authenticate, authorizeAdmin, getAllStudent);
+router.route('/teachers').get(authenticate, authorizeAdmin, getAllTeacher);
+router
+  .route('/teachers/:UId')
+  .put(authenticate, authorizeAdmin, editTeacher)
+  .delete(authenticate, authorizeAdmin, deleteTeacher); //Uid refers to teachers mongo id
 
 router
   .route('/students/:id')
@@ -28,4 +36,5 @@ router
   .delete(authenticate, authorizeAdmin, deleteStudent);
 router.post('/auth', loginUser);
 router.post('/logout', logoutCurrentUser);
+
 export default router;
