@@ -78,13 +78,58 @@ const logoutCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const getAllUser = asyncHandler(async (req, res) => {
-  const users = await User.find({});
+  const users = await User.find({}).select('-password');
   res.json(users);
 });
 
 const getAllStudent = asyncHandler(async (req, res) => {
-  const students = await User.find({ isTeacher: false, isAdmin: false });
+  const students = await User.find({ isTeacher: false, isAdmin: false }).select(
+    '-password'
+  );
   res.status(200).json(students);
 });
+const editStudent = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { username, srn, password } = req.body;
 
-export { createUser, loginUser, logoutCurrentUser, getAllUser, getAllStudent };
+  if (!username || !srn) {
+    throw new Error('Please provide proper details');
+  }
+  const user = await User.findOne({ _id: id });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  user.username = username;
+  user.id = srn;
+  if (password) {
+    user.password = await bcrypt.hash(password, 10);
+  }
+  await user.save();
+
+  res.status(200).json({
+    message: 'User updated successfully',
+  });
+});
+const deleteStudent = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  const user = await User.findOne({ _id: id });
+  if (!user) {
+    throw new Error('User not found');
+  }
+  await user.deleteOne();
+
+  res.status(200).json({
+    message: 'User deleted successfully',
+  });
+});
+
+export {
+  createUser,
+  loginUser,
+  logoutCurrentUser,
+  getAllUser,
+  getAllStudent,
+  editStudent,
+  deleteStudent,
+};

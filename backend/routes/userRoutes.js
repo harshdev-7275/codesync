@@ -5,6 +5,8 @@ import {
   logoutCurrentUser,
   getAllUser,
   getAllStudent,
+  editStudent,
+  deleteStudent,
 } from '../controllers/userController.js';
 import {
   authorizeAdmin,
@@ -19,6 +21,11 @@ router
   .post(authenticate, authorizeAdmin, createUser)
   .get(authenticate, authorizeAdmin, getAllUser);
 router.route('/students').get(authenticate, authorizeAdmin, getAllStudent);
+
+router
+  .route('/students/:id')
+  .put(authenticate, authorizeAdmin, editStudent)
+  .delete(authenticate, authorizeAdmin, deleteStudent);
 router.post('/auth', loginUser);
 router.post('/logout', logoutCurrentUser);
 export default router;
